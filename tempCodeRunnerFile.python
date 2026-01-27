@@ -1,0 +1,116 @@
+
+import re
+
+# ---------------- Scam Detector ----------------
+class ScamDetector:
+    def __init__(self):
+        self.keywords = [
+            "otp", "upi", "verify", "kyc",
+            "account blocked", "urgent", "click link"
+        ]
+
+    def analyze_message(self, message: str) -> dict:
+        score = 0.0
+        message_lower = message.lower()
+
+        for word in self.keywords:
+            if word in message_lower:
+                score += 0.15
+
+        is_scam = score >= 0.45
+
+        return {
+            "is_scam": is_scam,
+            "confidence": round(min(score, 1.0), 2)
+        }
+
+
+# ---------------- Persona Agent ----------------
+class PersonaAgent:
+    def __init__(self, persona_type="confused_user"):
+        self.persona_type = persona_type
+
+    def respond(self, incoming_message: str) -> str:
+        if self.persona_type == "confused_user":
+            return "Sir I am not understanding, which bank are you calling from?"
+
+        elif self.persona_type == "business_owner":
+            return "Please send official email, I will verify with my accountant."
+
+        elif self.persona_type == "senior_citizen":
+            return "Beta my phone is slow, can you explain again?"
+
+        return "Please explain again."
+
+
+# ---------------- Extractor ----------------
+class Extractor:
+    def extract_entities(self, text: str) -> dict:
+        upi_ids = re.findall(r"\b\w+@\w+\b", text)
+        links = re.findall(r"https?://\S+", text)
+
+        return {
+            "upi_ids": list(set(upi_ids)),
+            "phishing_links": list(set(links))
+        }
+
+
+# ---------------- Guard ----------------
+class Guard:
+    def is_safe(self, reply: str) -> bool:
+        blocked_terms = ["otp", "pin", "password", "cvv"]
+
+        for term in blocked_terms:
+            if term in reply.lower():
+                return False
+        return True
+
+
+# ---------------- Controller ----------------
+class HoneypotController:
+    def __init__(self):
+        self.detector = ScamDetector()
+        self.persona = PersonaAgent(persona_type="confused_user")
+        self.extractor = Extractor()
+        self.guard = Guard()
+
+    def process_message(self, message: str) -> dict:
+        detection = self.detector.analyze_message(message)
+
+        if not detection["is_scam"]:
+            return {
+                "status": "safe_message",
+                "message": message
+            }
+
+        reply = self.persona.respond(message)
+
+        if not self.guard.is_safe(reply):
+            reply = "Please clarify your request."
+
+        extracted_data = self.extractor.extract_entities(message)
+
+        return {
+            "is_scam": True,
+            "confidence": detection["confidence"],
+            "persona_used": self.persona.persona_type,
+            "agent_reply": reply,
+            "extracted_intelligence": extracted_data
+        }
+
+
+# ---------------- Demo Run ----------------
+if __name__ == "__main__":
+    controller = HoneypotController()
+
+    # Mock scammer message
+    scam_message = (
+        "Your account is blocked. Verify KYC urgently. "
+        "Send UPI to fraud@upi or click https://fakebank-login.com"
+    )
+
+    result = controller.process_message(scam_message)
+
+    print("\n--- HONEYPOT SYSTEM OUTPUT ---\n")
+    for key, value in result.items():
+        print(f"{key}: {value}")
