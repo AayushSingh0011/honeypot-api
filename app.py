@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import re
+import os
 
 app = Flask(__name__)
 
@@ -8,32 +9,47 @@ class ScamDetector:
     def __init__(self):
         self.keywords = [
             "otp", "upi", "verify", "kyc",
-            "account blocked", "urgent", "click link"
+            "account blocked", "urgent", "click", "link",
+            "winner", "lottery", "cashback"
         ]
 
     def analyze(self, message):
-        score = 0
+        score = 0.0
+        text = message.lower()
+
         for k in self.keywords:
-            if k in message.lower():
+            if k in text:
                 score += 0.15
+
+        is_scam = score >= 0.45
+
+        # Scam level
+        if score >= 0.75:
+            level = "HIGH"
+        elif score >= 0.45:
+            level = "MEDIUM"
+        else:
+            level = "LOW"
+
         return {
-            "is_scam": score >= 0.45,
-            "confidence": round(min(score, 1.0), 2)
+            "is_scam": is_scam,
+            "confidence": round(min(score, 1.0), 2),
+            "level": level
         }
 
 
 # ---------------- LLM Persona Agent ----------------
 class LLMPersonaAgent:
-    """
-    Simulated LLM agent (hackathon-safe).
-    Can later be replaced with OpenAI / Gemini / etc.
-    """
     def generate_reply(self, message):
-        if "upi" in message.lower():
-            return "Sir, can you please repeat the UPI ID? I want to confirm."
-        if "link" in message.lower():
-            return "The link is not opening, can you send it again?"
-        return "I am confused, which bank is this regarding?"
+        msg = message.lower()
+
+        if "upi" in msg:
+            return "Sir, please confirm the UPI ID again."
+        if "link" in msg:
+            return "The link is not opening. Can you resend it?"
+        if "account" in msg:
+            return "Which bank is this related to?"
+        return "I am not able to understand. Please explain again."
 
 
 # ---------------- Extractor ----------------
@@ -52,41 +68,50 @@ class Guard:
         return not any(b in reply.lower() for b in blocked)
 
 
-# ---------------- Controller ----------------
+# ---------------- Initialize ----------------
 detector = ScamDetector()
 agent = LLMPersonaAgent()
 extractor = Extractor()
 guard = Guard()
 
+
+# ---------------- Dashboard Route ----------------
 @app.route("/", methods=["GET", "POST"])
 def dashboard():
     result = None
 
     if request.method == "POST":
-        message = request.form["message"]
+        message = request.form.get("message", "")
 
-        detection = detector.analyze(message)
+        if message:
+            detection = detector.analyze(message)
 
-        if detection["is_scam"]:
-            reply = agent.generate_reply(message)
-            if not guard.safe(reply):
-                reply = "Please clarify your request."
+            if detection["is_scam"]:
+                reply = agent.generate_reply(message)
 
-            result = {
-                "is_scam": True,
-                "confidence": detection["confidence"],
-                "agent_reply": reply,
-                "extracted_data": extractor.extract(message)
-            }
-        else:
-            result = {"is_scam": False}
+                if not guard.safe(reply):
+                    reply = "Please clarify your request."
+
+                extracted = extractor.extract(message)
+
+                result = {
+                    "is_scam": True,
+                    "level": detection["level"],
+                    "confidence": detection["confidence"],
+                    "agent_reply": reply,
+                    "extracted_data": extracted
+                }
+            else:
+                result = {
+                    "is_scam": False,
+                    "level": detection["level"],
+                    "confidence": detection["confidence"]
+                }
 
     return render_template("dashboard.html", result=result)
 
 
-import os
-
+# ---------------- Run ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
