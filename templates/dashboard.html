@@ -62,23 +62,49 @@ button {
         <textarea name="message" placeholder="Paste message..."></textarea>
         <button type="submit">Analyze</button>
     </form>
+    
+<!-- 🔥 RESULT FROM BACKEND -->
+{% if result %}
+    <div class="result" style="padding:15px; border-radius:10px; background:#111; margin-top:20px; text-align:left;">
 
-    <!-- 🔥 RESULT FROM BACKEND -->
-    {% if result %}
-        <div class="result">
+        {% if result.is_scam %}
+            <span style="color:#ff4d4d;">🚨 <b>Scam Detected</b></span><br>
+            Confidence: {{ result.confidence }} <br>
+            Level: {{ result.level }} <br><br>
 
-            {% if result.is_scam %}
-                🚨 <b>Scam Detected</b><br>
-                Confidence: {{ result.confidence }} <br>
-                Level: {{ result.level }} <br><br>
+            🤖 <b>AI Reply:</b> {{ result.agent_reply }}
 
-                🤖 AI Reply: {{ result.agent_reply }}
+            <!-- 🔥 Extracted Data -->
+            {% if result.extracted_data %}
+                <br><br>
+                🔎 <b>Extracted Intelligence:</b><br>
 
-            {% else %}
-                ✅ Safe Message <br>
-                Confidence: {{ result.confidence }}
+                {% if result.extracted_data.links %}
+                    <span style="color:#38bdf8;">🌐 Links Found:</span>
+                    <ul>
+                        {% for link in result.extracted_data.links %}
+                            <li style="color:#60a5fa;">{{ link }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if result.extracted_data.upi_ids %}
+                    <span style="color:#22c55e;">💳 UPI IDs Found:</span>
+                    <ul>
+                        {% for upi in result.extracted_data.upi_ids %}
+                            <li style="color:#4ade80;">{{ upi }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             {% endif %}
 
+        {% else %}
+            <span style="color:#4ade80;">✅ Safe Message</span><br>
+            Confidence: {{ result.confidence }}
+        {% endif %}
+
+    </div>
+{% endif %}
         </div>
     {% endif %}
 
