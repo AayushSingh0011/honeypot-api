@@ -10,7 +10,33 @@ class ScamDetector:
         self.keywords = [
             "otp", "upi", "verify", "kyc",
             "account blocked", "urgent", "click", "link",
-            "winner", "lottery", "cashback"
+            "winner", "lottery", "cashback",
+            
+"account blocked", "account suspended", "verify account",
+"update kyc", "kyc pending", "bank alert",
+"unauthorized transaction", "suspicious activity",
+"account frozen", "reactivate account",
+            
+"win money", "winner", "lottery", "prize",
+"cashback", "reward", "gift", "bonus",
+"congratulations you won", "free money",
+            "otp", "pin", "password", "cvv",
+"share otp", "enter otp", "verify otp",
+            "upi", "request money", "send money",
+"payment failed", "urgent payment",
+"pay now", "click to pay",
+            "click link", "open link", "verify link",
+"short link", "bit.ly", "tinyurl",
+"http://", "https://"
+            "urgent", "immediately", "act now",
+"limited time", "last chance",
+"expire today", "within 24 hours",
+            "bank", "rbi", "income tax", "customs",
+"police", "government", "support team",
+"customer care", "official notice"
+]
+
+
         ]
 
     def analyze(self, message):
