@@ -29,57 +29,53 @@ class ScamDetector:
     
     "high_income": r"(₹\s?\d{3,}/day|₹\s?\d{4,}/week|earn\s?\₹?\d+|income\s?\₹?\d+)",
     "no_experience": r"(no experience needed|no experience required)",
-    "job_offer": r"(part[- ]?time job|work from home|online job|easy job)",
+    "job_offer": r"(part[- ]?time job|work from home|online job|easy job)",]
     
-    # 💳 Payment requests (STRONG SIGNAL)
-    "payment_request": r"(pay\s?\₹?\d+|registration fee|joining fee|processing fee|charges apply)",
-    
-    # 🎯 Generic targeting language
-    "generic_targeting": r"(found your profile|selected your profile|based on your resume)",
-    
-    # ⚠️ Urgency / pressure tactics
-    "urgency": r"(urgent|act now|limited time|only today|hurry)",
-    
-    # 🔐 Sensitive info request
-    "sensitive_info": r"(otp|password|cvv|bank details|account number)",
-    
-    # 🔗 Suspicious links
-    "suspicious_links": r"(http[s]?://|bit\.ly|tinyurl|shorturl)",
-    
-    # 🎁 Fake rewards / lottery
-    "lottery": r"(won|winner|prize|lottery|reward)",
-    
-    # 👤 Impersonation
-    "impersonation": r"(customer support|bank official|income tax department)"
-        ]
+ # ✅ REGEX PATTERNS (separate)
+    self.patterns = {
+        "high_income": r"(₹\s?\d{3,}/day|₹\s?\d{4,}/week|earn\s?\₹?\d+)",
+        "no_experience": r"(no experience needed|no experience required)",
+        "job_offer": r"(part[- ]?time job|work from home|online job)",
+        "payment_request": r"(registration fee|joining fee|processing fee)",
+        "urgency": r"(urgent|act now|limited time)",
+        "sensitive_info": r"(otp|password|cvv|bank details)",
+        "links": r"(http[s]?://|bit\.ly|tinyurl)"
+    }
+        
 
-    def analyze(self, message):
-        score = 0.0
-        text = message.lower()
+  def analyze(self, message):
+    score = 0.0
+    text = message.lower()
 
-        for k in self.keywords:
-            if k in text:
-                if k in ["otp", "pin", "password", "cvv"]:
-                    score += 0.4
-                elif k in ["upi", "bank", "account blocked"]:
-                    score += 0.25
-                else:
-                    score += 0.15
+    # Keyword scoring
+    for k in self.keywords:
+        if k in text:
+            if k in ["otp", "pin", "password", "cvv"]:
+                score += 0.4
+            elif k in ["upi", "bank", "account blocked"]:
+                score += 0.25
+            else:
+                score += 0.15
 
-        is_scam = score >= 0.5
+    # ✅ Regex scoring (VERY POWERFUL)
+    for name, pattern in self.patterns.items():
+        if re.search(pattern, text):
+            score += 0.3
 
-        if score >= 0.7:
-            level = "HIGH"
-        elif score >= 0.4:
-            level = "MEDIUM"
-        else:
-            level = "LOW"
+    is_scam = score >= 0.5
 
-        return {
-            "is_scam": is_scam,
-            "confidence": round(min(score, 1.0), 2),
-            "level": level
-        }
+    if score >= 0.7:
+        level = "HIGH"
+    elif score >= 0.4:
+        level = "MEDIUM"
+    else:
+        level = "LOW"
+
+    return {
+        "is_scam": is_scam,
+        "confidence": round(min(score, 1.0), 2),
+        "level": level
+    }
 
 
 # ---------------- LLM Persona Agent ----------------
