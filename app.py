@@ -9,34 +9,22 @@ class ScamDetector:
     def __init__(self):
         self.keywords = [
             "otp", "upi", "verify", "kyc",
-            "account blocked", "urgent", "click", "link",
-            "winner", "lottery", "cashback",
-            
-"account blocked", "account suspended", "verify account",
-"update kyc", "kyc pending", "bank alert",
-"unauthorized transaction", "suspicious activity",
-"account frozen", "reactivate account",
-            
-"win money", "winner", "lottery", "prize",
-"cashback", "reward", "gift", "bonus",
-"congratulations you won", "free money",
-            "otp", "pin", "password", "cvv",
-"share otp", "enter otp", "verify otp",
-            "upi", "request money", "send money",
-"payment failed", "urgent payment",
-"pay now", "click to pay",
-            "click link", "open link", "verify link",
-"short link", "bit.ly", "tinyurl",
-"http://", "https://"
-            "urgent", "immediately", "act now",
-"limited time", "last chance",
-"expire today", "within 24 hours",
-            "bank", "rbi", "income tax", "customs",
-"police", "government", "support team",
-"customer care", "official notice"
-]
+            "account blocked", "account suspended", "verify account",
+            "update kyc", "kyc pending", "bank alert",
+            "unauthorized transaction", "account frozen",
 
+            "win money", "winner", "lottery", "prize",
+            "cashback", "reward", "bonus", "free money",
 
+            "pin", "password", "cvv", "verify otp",
+
+            "request money", "pay now", "urgent payment",
+
+            "click link", "open link", "bit.ly", "tinyurl", "http", "https",
+
+            "urgent", "act now", "limited time", "expire today",
+
+            "bank", "rbi", "income tax", "police", "customer care"
         ]
 
     def analyze(self, message):
@@ -45,14 +33,18 @@ class ScamDetector:
 
         for k in self.keywords:
             if k in text:
-                score += 0.15
+                if k in ["otp", "pin", "password", "cvv"]:
+                    score += 0.4
+                elif k in ["upi", "bank", "account blocked"]:
+                    score += 0.25
+                else:
+                    score += 0.15
 
-        is_scam = score >= 0.45
+        is_scam = score >= 0.5
 
-        # Scam level
-        if score >= 0.75:
+        if score >= 0.7:
             level = "HIGH"
-        elif score >= 0.45:
+        elif score >= 0.4:
             level = "MEDIUM"
         else:
             level = "LOW"
@@ -106,54 +98,36 @@ guard = Guard()
 def dashboard():
     result = None
 
-   if request.method == "POST":
-    message = request.form.get("message", "")
-    text = message.lower()
+    if request.method == "POST":
+        message = request.form.get("message", "")
 
-    score = 0.0
+        detection = detector.analyze(message)
 
-    # simple scoring
-    if "otp" in text or "upi" in text:
-        score += 0.4
-    if "account" in text or "blocked" in text:
-        score += 0.3
-    if "verify" in text:
-        score += 0.2
+        if detection["is_scam"]:
+            reply = agent.generate_reply(message)
 
-    is_scam = score >= 0.5
+            if not guard.safe(reply):
+                reply = "Please clarify your request."
 
-    # level
-    if score >= 0.7:
-        level = "HIGH"
-    elif score >= 0.4:
-        level = "MEDIUM"
-    else:
-        level = "LOW"
+            extracted = extractor.extract(message)
 
-    # reply
-    if "account" in text:
-        reply = "Why is my account being suspended?"
-    elif "verify" in text:
-        reply = "What details do you need for verification?"
-    elif "otp" in text or "upi" in text:
-        reply = "Why is this information required?"
-    else:
-        reply = "Can you explain this in more detail?"
+            result = {
+                "is_scam": True,
+                "level": detection["level"],
+                "confidence": detection["confidence"],
+                "agent_reply": reply,
+                "extracted_data": extracted
+            }
+        else:
+            result = {
+                "is_scam": False,
+                "level": detection["level"],
+                "confidence": detection["confidence"]
+            }
 
-    result = {
-        "is_scam": is_scam,
-        "confidence": round(score, 2),
-        "level": level,
-        "agent_reply": reply,
-        "extracted_data": {
-            "links": [],
-            "upi_ids": []
-        }
-    }
     return render_template("dashboard.html", result=result or {})
 
 
 # ---------------- Run ----------------
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
