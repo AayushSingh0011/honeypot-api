@@ -74,28 +74,28 @@ button {
 
             🤖 <b>AI Reply:</b> {{ result.agent_reply }}
 
-            <!-- 🔥 Extracted Data -->
             {% if result.extracted_data %}
                 <br><br>
                 🔎 <b>Extracted Intelligence:</b><br>
 
                 {% if result.extracted_data.links %}
-                    <span style="color:#38bdf8;">🌐 Links Found:</span>
+                    🌐 Links:
                     <ul>
                         {% for link in result.extracted_data.links %}
-                            <li style="color:#60a5fa;">{{ link }}</li>
+                            <li>{{ link }}</li>
                         {% endfor %}
                     </ul>
                 {% endif %}
 
                 {% if result.extracted_data.upi_ids %}
-                    <span style="color:#22c55e;">💳 UPI IDs Found:</span>
+                    💳 UPI IDs:
                     <ul>
                         {% for upi in result.extracted_data.upi_ids %}
-                            <li style="color:#4ade80;">{{ upi }}</li>
+                            <li>{{ upi }}</li>
                         {% endfor %}
                     </ul>
                 {% endif %}
+
             {% endif %}
 
         {% else %}
@@ -105,10 +105,3 @@ button {
 
     </div>
 {% endif %}
-        </div>
-    {% endif %}
-
-</div>
-
-</body>
-</html>
