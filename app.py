@@ -1,84 +1,79 @@
 from flask import Flask, render_template, request
 import re
-import os
 
 app = Flask(__name__)
 
 # ---------------- Scam Detector ----------------
 class ScamDetector:
     def __init__(self):
+        # ✅ KEYWORDS ONLY
         self.keywords = [
             "otp", "upi", "verify", "kyc",
-            "account blocked", "account suspended", "verify account",
-            "update kyc", "kyc pending", "bank alert",
-            "unauthorized transaction", "account frozen",
+            "account blocked", "account suspended",
+            "update kyc", "bank alert",
+            "unauthorized transaction",
 
             "win money", "winner", "lottery", "prize",
             "cashback", "reward", "bonus", "free money",
 
-            "pin", "password", "cvv", "verify otp",
+            "pin", "password", "cvv",
 
-            "request money", "pay now", "urgent payment",
+            "request money", "pay now",
 
-            "click link", "open link", "bit.ly", "tinyurl", "http", "https",
+            "click link", "bit.ly", "tinyurl", "http", "https",
 
-            "urgent", "act now", "limited time", "expire today",
+            "urgent", "act now", "limited time",
 
-            "bank", "rbi", "income tax", "police", "customer care",
+            "bank", "rbi", "income tax", "police", "customer care"
+        ]
 
-    
-    "high_income": r"(₹\s?\d{3,}/day|₹\s?\d{4,}/week|earn\s?\₹?\d+|income\s?\₹?\d+)",
-    "no_experience": r"(no experience needed|no experience required)",
-    "job_offer": r"(part[- ]?time job|work from home|online job|easy job)",]
-    
- # ✅ REGEX PATTERNS (separate)
-    self.patterns = {
-        "high_income": r"(₹\s?\d{3,}/day|₹\s?\d{4,}/week|earn\s?\₹?\d+)",
-        "no_experience": r"(no experience needed|no experience required)",
-        "job_offer": r"(part[- ]?time job|work from home|online job)",
-        "payment_request": r"(registration fee|joining fee|processing fee)",
-        "urgency": r"(urgent|act now|limited time)",
-        "sensitive_info": r"(otp|password|cvv|bank details)",
-        "links": r"(http[s]?://|bit\.ly|tinyurl)"
-    }
-        
+        # ✅ REGEX PATTERNS (SEPARATE)
+        self.patterns = {
+            "high_income": r"(₹\s?\d{3,}/day|₹\s?\d{4,}/week|earn\s?\₹?\d+)",
+            "no_experience": r"(no experience needed|no experience required)",
+            "job_offer": r"(part[- ]?time job|work from home|online job)",
+            "payment_request": r"(registration fee|joining fee|processing fee)",
+            "urgency": r"(urgent|act now|limited time)",
+            "sensitive_info": r"(otp|password|cvv|bank details)",
+            "links": r"(http[s]?://|bit\.ly|tinyurl)"
+        }
 
-  def analyze(self, message):
-    score = 0.0
-    text = message.lower()
+    def analyze(self, message):
+        score = 0.0
+        text = message.lower()
 
-    # Keyword scoring
-    for k in self.keywords:
-        if k in text:
-            if k in ["otp", "pin", "password", "cvv"]:
-                score += 0.4
-            elif k in ["upi", "bank", "account blocked"]:
-                score += 0.25
-            else:
-                score += 0.15
+        # keyword scoring
+        for k in self.keywords:
+            if k in text:
+                if k in ["otp", "pin", "password", "cvv"]:
+                    score += 0.4
+                elif k in ["upi", "bank", "account blocked"]:
+                    score += 0.25
+                else:
+                    score += 0.15
 
-    # ✅ Regex scoring (VERY POWERFUL)
-    for name, pattern in self.patterns.items():
-        if re.search(pattern, text):
-            score += 0.3
+        # regex scoring
+        for pattern in self.patterns.values():
+            if re.search(pattern, text):
+                score += 0.3
 
-    is_scam = score >= 0.5
+        is_scam = score >= 0.5
 
-    if score >= 0.7:
-        level = "HIGH"
-    elif score >= 0.4:
-        level = "MEDIUM"
-    else:
-        level = "LOW"
+        if score >= 0.7:
+            level = "HIGH"
+        elif score >= 0.4:
+            level = "MEDIUM"
+        else:
+            level = "LOW"
 
-    return {
-        "is_scam": is_scam,
-        "confidence": round(min(score, 1.0), 2),
-        "level": level
-    }
+        return {
+            "is_scam": is_scam,
+            "confidence": round(min(score, 1.0), 2),
+            "level": level
+        }
 
 
-# ---------------- LLM Persona Agent ----------------
+# ---------------- Agent ----------------
 class LLMPersonaAgent:
     def generate_reply(self, message):
         msg = message.lower()
@@ -89,7 +84,7 @@ class LLMPersonaAgent:
             return "The link is not opening. Can you resend it?"
         if "account" in msg:
             return "Which bank is this related to?"
-        return "I am not able to understand. Please explain again."
+        return "Please explain your message again."
 
 
 # ---------------- Extractor ----------------
@@ -115,7 +110,7 @@ extractor = Extractor()
 guard = Guard()
 
 
-# ---------------- Dashboard Route ----------------
+# ---------------- Route ----------------
 @app.route("/", methods=["GET", "POST"])
 def dashboard():
     result = None
