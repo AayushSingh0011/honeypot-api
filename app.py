@@ -106,35 +106,51 @@ guard = Guard()
 def dashboard():
     result = None
 
-    if request.method == "POST":
-        message = request.form.get("message", "")
+   if request.method == "POST":
+    message = request.form.get("message", "")
+    text = message.lower()
 
-        if message:
-            detection = detector.analyze(message)
+    score = 0.0
 
-            if detection["is_scam"]:
-                reply = agent.generate_reply(message)
+    # simple scoring
+    if "otp" in text or "upi" in text:
+        score += 0.4
+    if "account" in text or "blocked" in text:
+        score += 0.3
+    if "verify" in text:
+        score += 0.2
 
-                if not guard.safe(reply):
-                    reply = "Please clarify your request."
+    is_scam = score >= 0.5
 
-                extracted = extractor.extract(message)
+    # level
+    if score >= 0.7:
+        level = "HIGH"
+    elif score >= 0.4:
+        level = "MEDIUM"
+    else:
+        level = "LOW"
 
-                result = {
-                    "is_scam": True,
-                    "level": detection["level"],
-                    "confidence": detection["confidence"],
-                    "agent_reply": reply,
-                    "extracted_data": extracted
-                }
-            else:
-                result = {
-                    "is_scam": False,
-                    "level": detection["level"],
-                    "confidence": detection["confidence"]
-                }
+    # reply
+    if "account" in text:
+        reply = "Why is my account being suspended?"
+    elif "verify" in text:
+        reply = "What details do you need for verification?"
+    elif "otp" in text or "upi" in text:
+        reply = "Why is this information required?"
+    else:
+        reply = "Can you explain this in more detail?"
 
-    return render_template("dashboard.html", result=result)
+    result = {
+        "is_scam": is_scam,
+        "confidence": round(score, 2),
+        "level": level,
+        "agent_reply": reply,
+        "extracted_data": {
+            "links": [],
+            "upi_ids": []
+        }
+    }
+    return render_template("dashboard.html", result=result or {})
 
 
 # ---------------- Run ----------------
