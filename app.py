@@ -91,10 +91,12 @@ class LLMPersonaAgent:
 class Extractor:
     def extract(self, text):
         return {
-            "upi_ids": list(set(re.findall(r"\b\w+@\w+\b", text))),
-            "links": list(set(re.findall(r"https?://\S+", text)))
-        }
+            # ✅ Better UPI detection
+            "upi_ids": list(set(re.findall(r"[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}", text))),
 
+            # ✅ Better link detection
+            "links": list(set(re.findall(r"https?://[^\s]+", text)))
+        }
 
 # ---------------- Guard ----------------
 class Guard:
