@@ -24,7 +24,33 @@ class ScamDetector:
 
             "urgent", "act now", "limited time", "expire today",
 
-            "bank", "rbi", "income tax", "police", "customer care"
+            "bank", "rbi", "income tax", "police", "customer care",
+
+    
+    "high_income": r"(₹\s?\d{3,}/day|₹\s?\d{4,}/week|earn\s?\₹?\d+|income\s?\₹?\d+)",
+    "no_experience": r"(no experience needed|no experience required)",
+    "job_offer": r"(part[- ]?time job|work from home|online job|easy job)",
+    
+    # 💳 Payment requests (STRONG SIGNAL)
+    "payment_request": r"(pay\s?\₹?\d+|registration fee|joining fee|processing fee|charges apply)",
+    
+    # 🎯 Generic targeting language
+    "generic_targeting": r"(found your profile|selected your profile|based on your resume)",
+    
+    # ⚠️ Urgency / pressure tactics
+    "urgency": r"(urgent|act now|limited time|only today|hurry)",
+    
+    # 🔐 Sensitive info request
+    "sensitive_info": r"(otp|password|cvv|bank details|account number)",
+    
+    # 🔗 Suspicious links
+    "suspicious_links": r"(http[s]?://|bit\.ly|tinyurl|shorturl)",
+    
+    # 🎁 Fake rewards / lottery
+    "lottery": r"(won|winner|prize|lottery|reward)",
+    
+    # 👤 Impersonation
+    "impersonation": r"(customer support|bank official|income tax department)"
         ]
 
     def analyze(self, message):
