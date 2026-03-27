@@ -24,7 +24,66 @@ class ScamDetector:
 
             "urgent", "act now", "limited time",
 
-            "bank", "rbi", "income tax", "police", "customer care"
+            "bank", "rbi", "income tax", "police", "customer care",
+
+
+
+    # 🔐 Sensitive Info
+    "otp", "one time password", "pin", "password", "cvv", "atm pin",
+    "bank details", "account number", "ifsc", "card details",
+
+    # 🏦 Banking / Threat
+    "account blocked", "account suspended", "account frozen",
+    "verify account", "update kyc", "kyc pending", "kyc expired",
+    "unauthorized transaction", "suspicious activity",
+    "reactivate account", "bank alert", "security alert",
+
+    # 💰 Money / Rewards
+    "win money", "winner", "lottery", "jackpot", "prize",
+    "cashback", "reward", "bonus", "free money", "gift",
+    "congratulations you won", "claim your prize",
+
+    # 💳 Payments / UPI
+    "upi", "request money", "send money", "receive money",
+    "payment failed", "pending payment", "pay now",
+    "collect request", "approve payment",
+
+    # 🔗 Links / Phishing
+    "click link", "open link", "verify link",
+    "short link", "bit.ly", "tinyurl", "grabify",
+    "http", "https", "login here",
+
+    # ⏰ Urgency / Pressure
+    "urgent", "immediately", "act now", "hurry",
+    "limited time", "last chance", "expire today",
+    "within 24 hours", "deadline",
+
+    # 🧑‍💼 Authority / Impersonation
+    "bank", "rbi", "income tax", "customs", "police",
+    "government", "support team", "customer care",
+    "official notice", "helpline",
+
+    # 💼 Job Scams
+    "work from home", "online job", "part time job",
+    "no experience needed", "easy job", "earn money",
+    "daily income", "weekly income",
+
+    # 📦 Delivery / Courier Scams
+    "parcel", "courier", "delivery failed",
+    "shipment", "track package", "address issue",
+
+    # 💸 Fees / Charges
+    "registration fee", "joining fee", "processing fee",
+    "service charge", "activation fee",
+
+    # 📱 SIM / KYC Fraud
+    "sim blocked", "sim verification", "mobile kyc",
+    "number suspended",
+
+    # 🎣 Generic Tricks
+    "click here", "tap here", "login now",
+    "confirm now", "verify now"
+
         ]
 
         # ✅ REGEX PATTERNS (SEPARATE)
